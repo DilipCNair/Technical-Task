@@ -4,6 +4,7 @@
 @inject BrowserConsole console
 @using System.Text.Json
 
+<PageTitle>Dashboard</PageTitle>
 <h3>Dashboard</h3>
 <p>@Message</p>
 
@@ -64,7 +65,7 @@ else
             <br />
             @{
                 var group = clientList.Data.Take(3) // Select only the first 3 clients
-                                      .GroupBy(c => c.ClientType);
+                                           .GroupBy(c => c.ClientType);
                 foreach (var g in group)
 				{
                     TotalValueByClientType = g.Sum(c => c.CurrentValue);

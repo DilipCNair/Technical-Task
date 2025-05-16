@@ -30,6 +30,12 @@
     </div>
 
     <button type="submit" class="btn btn-primary mt-3">Login</button>
+    <p class="mt-5">
+        @if (!string.IsNullOrEmpty(message))
+        {
+            <span class="text-danger text-center">@message</span>
+        }
+    </p>
 </EditForm>
 
 @code 
@@ -47,15 +53,13 @@
             {
                 var result = await response.Content.ReadFromJsonAsync<RootResponse>();
                 message = $"Login successful!";
-                await console.Log(message + result);
                 await sessionStorage.SetItemAsync("Token", result);
                 await sessionStorage.SetItemAsync("FirmID", loginModel.FirmId);
                 navigationManager.NavigateTo("/dashboard");
             }
             else
             {
-                message = "Login failed: " + await response.Content.ReadAsStringAsync();
-                await console.Error(message);
+                message = "Login Failed";
             }
         }
         catch (Exception ex)
