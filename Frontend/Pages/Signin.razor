@@ -2,6 +2,8 @@
 @inject HttpClient httpClient
 @inject BrowserConsole console
 @inject NavigationManager navigationManager
+@inject ISessionStorageService sessionStorage
+
 
 <PageTitle>Signin</PageTitle>
 
@@ -43,10 +45,12 @@
 
             if (response.IsSuccessStatusCode)
             {
-                var result = await response.Content.ReadFromJsonAsync<Data>();
+                var result = await response.Content.ReadFromJsonAsync<RootResponse>();
                 message = $"Login successful!";
-				await console.Log(message);
-				navigationManager.NavigateTo("/dashboard");
+                await console.Log(message + result);
+                await sessionStorage.SetItemAsync("Token", result);
+                await sessionStorage.SetItemAsync("FirmID", loginModel.FirmId);
+                navigationManager.NavigateTo("/dashboard");
             }
             else
             {

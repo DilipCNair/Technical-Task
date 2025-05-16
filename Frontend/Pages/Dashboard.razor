@@ -1,7 +1,98 @@
 ﻿@page "/dashboard"
+@inject HttpClient httpClient
+@inject ISessionStorageService sessionStorage
+@inject BrowserConsole console
+@using System.Text.Json
 
 <h3>Dashboard</h3>
+<p>@Message</p>
 
-@code {
+@if (clientList == null)
+{
+    <p><em>Loading...</em></p>
+}
+else
+{
+    <table class="table table-bordered table-striped table-hover">
+        <thead class="table-dark">
+            <tr>
+                <th>ID</th>
+                <th>Name</th>
+                <th>Status</th>
+                <th>Node ID(s)</th>
+                <th>Node Name(s)</th>
+                <th>Currency</th>
+                <th>Current Value</th>
+                <th>Accounts</th>
+                <th>Uninvested Cash</th>
+                <th>Growth</th>
+                <th>Growth %</th>
+                <th>Adjusted Growth</th>
+                <th>Adjusted Growth %</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var client in clientList.Data)
+            {
+                <tr>
+                    <td>@client.Id</td>
+                    <td>@client.Name</td>
+                    <td>@client.Status</td>
+                    <td>@string.Join(", ", client.NodeId)</td>
+                    <td>@(client.NodeName != null ? string.Join(", ", client.NodeName) : "-")</td>
+                    <td>@client.Currency</td>
+                    <td>@client.CurrentValue</td>
+                    <td>@client.Accounts</td>
+                    <td>@client.UninvestedCash</td>
+                    <td>@client.Growth</td>
+                    <td>@($"{client.GrowthPercent:P2}")</td>
+                    <td>@client.AdjustedGrowth</td>
+                    <td>@($"{client.AdjustedGrowthPercent:P2}")</td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}
+
+@code 
+{
+	private string Message { get; set; } = string.Empty;
+	private PortfolioResponse? clientList { get; set; }
+	private string PageSize { get; set; } = "100";
+	private string Page { get; set; } = "1";
+
+
+	protected override async Task OnInitializedAsync()
+	{
+		try
+		{
+			var token = await sessionStorage.GetItemAsync<string>("Token");
+			if (string.IsNullOrEmpty(token))
+			{
+				Message = "No token found. Please log in.";
+				return;
+			}
+			var data = JsonSerializer.Deserialize<RootResponse>(token);
+			httpClient.DefaultRequestHeaders.Remove("api-token"); // Optional: Clean old token
+			httpClient.DefaultRequestHeaders.Add("api-token", data?.Data.Token);
+			var firmId = await sessionStorage.GetItemAsync<string>("FirmID");
+			var url = $"{Endpoints.AllClients}/{firmId}?pageSize={PageSize}&page={Page}";
+			var response = await httpClient.GetAsync(url);
+			if (response.IsSuccessStatusCode)
+			{
+				clientList = await response.Content.ReadFromJsonAsync<PortfolioResponse>();
+				Message = "List of Clients";
+			}
+			else
+			{
+				Message = "Failed to load dashboard: " + await response.Content.ReadAsStringAsync();
+			}
+		}
+		catch (Exception ex)
+		{
+			Message = "An error occurred: " + ex.Message;
+			await console.Log(ex.Message);
+		}
+	}
 
 }
