@@ -19,6 +19,9 @@ public class Portfolio
     [JsonPropertyName("name")]
     public string Name { get; set; } = string.Empty;
 
+    [JsonPropertyName("clientType")]
+    public string ClientType { get; set; } = string.Empty;
+
     [JsonPropertyName("status")]
     public string? Status { get; set; }
 
@@ -51,6 +54,7 @@ public class Portfolio
 
     [JsonPropertyName("adjustedGrowthPercent")]
     public double AdjustedGrowthPercent { get; set; }
+
 }
 
 public enum ClientStatus

@@ -19,8 +19,8 @@ else
                 <th>ID</th>
                 <th>Name</th>
                 <th>Status</th>
-                <th>Node ID(s)</th>
-                <th>Node Name(s)</th>
+                <th>Client Type</th>
+                <th>Node Name(s)</th>             
                 <th>Currency</th>
                 <th>Current Value</th>
                 <th>Accounts</th>
@@ -38,7 +38,7 @@ else
                     <td>@client.Id</td>
                     <td>@client.Name</td>
                     <td>@client.Status</td>
-                    <td>@string.Join(", ", client.NodeId)</td>
+                    <td>@client.ClientType</td>
                     <td>@(client.NodeName != null ? string.Join(", ", client.NodeName) : "-")</td>
                     <td>@client.Currency</td>
                     <td>@client.CurrentValue</td>
@@ -52,15 +52,38 @@ else
             }
         </tbody>
     </table>
+    <div>
+        <p>Total Value of first 3 clients: 
+            @for(int i=0; i<3; i++)
+            {
+                TotalValue += @clientList.Data[i].CurrentValue;
+            }  
+            @TotalValue
+        </p>
+        <p>Total Value by Client Type (First 3 clients):
+            <br />
+            @{
+                var group = clientList.Data.Take(3) // Select only the first 3 clients
+                                      .GroupBy(c => c.ClientType);
+                foreach (var g in group)
+				{
+                    TotalValueByClientType = g.Sum(c => c.CurrentValue);
+					<span>@g.Key: @TotalValueByClientType</span>
+					<br/>
+				}
+            }
+        </p>
+    </div>
 }
 
 @code 
 {
-	private string Message { get; set; } = string.Empty;
-	private PortfolioResponse? clientList { get; set; }
-	private string PageSize { get; set; } = "100";
-	private string Page { get; set; } = "1";
-
+    private string Message { get; set; } = string.Empty;
+    private PortfolioResponse? clientList { get; set; }
+    private string PageSize { get; set; } = "100";
+    private string Page { get; set; } = "1";
+    private double TotalValue { get; set; } = 0;
+	private double TotalValueByClientType { get; set; } = 0;
 
 	protected override async Task OnInitializedAsync()
 	{
