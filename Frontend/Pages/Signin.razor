@@ -1,0 +1,63 @@
+﻿@page "/"
+@inject HttpClient httpClient
+@inject BrowserConsole console
+@inject NavigationManager navigationManager
+
+<PageTitle>Signin</PageTitle>
+
+<EditForm Model="@loginModel" class="w-25 mx-auto" OnValidSubmit="HandleValidSubmit" >
+    <DataAnnotationsValidator />
+    <ValidationSummary />
+
+    <div class="mb-3">
+        <label class="form-label">Firm Id</label>
+        <InputText class="form-control" @bind-Value="loginModel.FirmId" />
+        <ValidationMessage For="@(() => loginModel.FirmId)" />
+    </div>
+
+    <div class="mb-3">
+        <label class="form-label">Id</label>
+        <InputText class="form-control" @bind-Value="loginModel.Id" />
+        <ValidationMessage For="@(() => loginModel.Id)" />
+    </div>
+
+    <div class="mb-3">
+        <label class="form-label">Password</label>
+        <InputText type="password" class="form-control" @bind-Value="loginModel.Password" />
+        <ValidationMessage For="@(() => loginModel.Password)" />
+    </div>
+
+    <button type="submit" class="btn btn-primary mt-3">Login</button>
+</EditForm>
+
+@code 
+{
+    private LoginModal loginModel = new();	
+    private string message = string.Empty;
+
+    private async Task HandleValidSubmit()
+    {
+        try
+        {
+            var response = await httpClient.PostAsJsonAsync(Endpoints.LoginUrl, loginModel);
+
+            if (response.IsSuccessStatusCode)
+            {
+                var result = await response.Content.ReadFromJsonAsync<Data>();
+                message = $"Login successful!";
+				await console.Log(message);
+				navigationManager.NavigateTo("/dashboard");
+            }
+            else
+            {
+                message = "Login failed: " + await response.Content.ReadAsStringAsync();
+                await console.Error(message);
+            }
+        }
+        catch (Exception ex)
+        {
+            message = $"Error: {ex.Message}";
+            await console.Error(message);
+        }
+    }
+}
